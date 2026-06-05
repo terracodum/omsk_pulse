@@ -1,5 +1,25 @@
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, GeoJSON, CircleMarker, Tooltip } from 'react-leaflet'
+import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet'
+import L from 'leaflet'
+
+const BOUNDS = L.latLngBounds([[52.5, 68.0], [59.5, 78.0]])
+const MIN_ZOOM = 6
+
+function MapConstraints() {
+  const map = useMap()
+  useEffect(() => {
+    map.setMinZoom(MIN_ZOOM)
+    map.setMaxBounds(BOUNDS)
+    map.options.bounceAtZoomLimits = false
+    const clampZoom = () => {
+      if (map.getZoom() < MIN_ZOOM) map.setZoom(MIN_ZOOM, { animate: false })
+    }
+    map.on('zoom', clampZoom)
+    map.on('zoomend', clampZoom)
+    return () => { map.off('zoom', clampZoom); map.off('zoomend', clampZoom) }
+  }, [map])
+  return null
+}
 import 'leaflet/dist/leaflet.css'
 import osmtogeojson from 'osmtogeojson'
 
@@ -16,7 +36,7 @@ map_to_area->.omsk;
 out geom;`
 
 const scoreToColor = (score) => {
-  if (score == null) return '#374151'
+  if (score == null) return '#cbd5e1'
   if (score >= 75) return '#22c55e'
   if (score >= 60) return '#84cc16'
   if (score >= 50) return '#f97316'
@@ -74,10 +94,10 @@ export default function OmskMap({ districts, onDistrictClick }) {
     const district = matchDistrict(feature.properties?.name, districts)
     return {
       fillColor: scoreToColor(district?.score),
-      fillOpacity: 0.45,
-      color: '#6b7280',
+      fillOpacity: 0.5,
+      color: '#9ca3af',
       weight: 1,
-      opacity: 0.8,
+      opacity: 1,
     }
   }
 
@@ -101,11 +121,17 @@ export default function OmskMap({ districts, onDistrictClick }) {
     <MapContainer
       center={[55.8, 73.2]}
       zoom={6}
-      style={{ height: '100%', width: '100%', background: '#111827' }}
+      zoomAnimation={true}
+      maxBounds={BOUNDS}
+      maxBoundsViscosity={3.0}
+      bounceAtZoomLimits={false}
+      inertia={false}
+      style={{ height: '100%', width: '100%' }}
       zoomControl={false}
     >
+      <MapConstraints />
       <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; CARTO'
       />
 
@@ -115,34 +141,16 @@ export default function OmskMap({ districts, onDistrictClick }) {
           data={geojson}
           style={styleFeature}
           onEachFeature={onEachFeature}
+          pointToLayer={() => null}
         />
       )}
 
-      {/* Точки всегда — как fallback и дополнительный клик */}
-      {districts.map((district) => (
-        <CircleMarker
-          key={district.id}
-          center={district.coords}
-          radius={loading ? 10 : 5}
-          pathOptions={{
-            fillColor: scoreToColor(district.score),
-            fillOpacity: loading ? 0.85 : 0.6,
-            color: '#0f172a',
-            weight: 1,
-          }}
-          eventHandlers={{ click: () => onDistrictClick(district) }}
-        >
-          <Tooltip direction="top" offset={[0, -8]}>
-            {district.name} · {district.score}
-          </Tooltip>
-        </CircleMarker>
-      ))}
 
       {loading && (
         <div style={{
           position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 1000, background: '#1f2937', color: '#9ca3af',
-          padding: '4px 12px', borderRadius: 6, fontSize: 12, border: '1px solid #374151',
+          zIndex: 1000, background: '#ffffff', color: '#6b7280',
+          padding: '4px 12px', borderRadius: 6, fontSize: 12, border: '1px solid #e2e8f0',
         }}>
           Загрузка границ…
         </div>

@@ -43,7 +43,8 @@
 }
 
 /* ─── Leaflet ─────────────────────────────────────────── */
-.leaflet-container { background: #0f172a !important; }
+.leaflet-container { background: #f8fafc !important; }
+.leaflet-interactive:focus { outline: none; }
 .leaflet-tooltip {
   background: var(--bg-card);
   border: 1px solid var(--border);
