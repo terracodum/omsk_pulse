@@ -23,7 +23,7 @@ export default function ProgressScreen({ onDone }) {
         <div className="w-7 h-7 rounded-lg bg-red-600 flex items-center justify-center">
           <Zap className="w-4 h-4 text-white" />
         </div>
-        <span className="font-bold" style={{ color: 'var(--text)' }}>ОмскПульс</span>
+        <span className="font-bold" style={{ color: 'var(--text)' }}>ZeroProblems</span>
       </div>
 
       <div className="w-full max-w-sm anim-up">

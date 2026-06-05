@@ -24,7 +24,7 @@ export default function UploadScreen({ onStart, dark, onToggleTheme }) {
             <Zap className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-4xl font-bold tracking-tight mb-2" style={{ color: 'var(--text)' }}>
-            ОмскПульс
+            ZeroProblems
           </h1>
           <p className="text-sm tracking-widest uppercase font-medium" style={{ color: 'var(--muted)' }}>
             Аналитика обращений граждан
