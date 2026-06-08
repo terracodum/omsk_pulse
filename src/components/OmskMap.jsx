@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet'
 import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import geojsonData from '../data/omsk_boundaries.json'
 
 const BOUNDS = L.latLngBounds([[52.5, 68.0], [59.5, 78.0]])
-const MIN_ZOOM = 6
+const MIN_ZOOM = 6.5
 
 function MapConstraints() {
   const map = useMap()
@@ -20,20 +22,6 @@ function MapConstraints() {
   }, [map])
   return null
 }
-import 'leaflet/dist/leaflet.css'
-import osmtogeojson from 'osmtogeojson'
-
-const CACHE_KEY = 'omsk_boundaries_v3'
-
-// Находим Омскую область как area, затем берём только то что внутри неё
-const OVERPASS_QUERY = `[out:json][timeout:90];
-relation["boundary"="administrative"]["admin_level"="4"]["name"="Омская область"];
-map_to_area->.omsk;
-(
-  relation["boundary"="administrative"]["admin_level"="6"](area.omsk);
-  relation["boundary"="administrative"]["admin_level"="9"](area.omsk);
-);
-out geom;`
 
 const scoreToColor = (score) => {
   if (score == null) return '#cbd5e1'
@@ -48,47 +36,17 @@ const scoreToColor = (score) => {
 function matchDistrict(osmName, districts) {
   if (!osmName) return null
   const n = osmName.toLowerCase()
-  return districts.find(d => {
+  const exact = districts.find(d => {
     const dn = d.name.toLowerCase()
       .replace(' округ', '').replace(' район', '').replace('ский', '').replace('ской', '')
     return n.includes(dn) || dn.includes(n.replace(' район', '').replace(' округ', ''))
-  }) || null
+  })
+  if (exact) return exact
+  if (n.includes('омск')) return districts.find(d => d.name.toLowerCase().includes('омский')) || null
+  return null
 }
 
-export default function OmskMap({ districts, onDistrictClick }) {
-  const [geojson, setGeojson] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-
-  useEffect(() => {
-    const cached = localStorage.getItem(CACHE_KEY)
-    if (cached) {
-      try {
-        setGeojson(JSON.parse(cached))
-      } catch {
-        localStorage.removeItem(CACHE_KEY)
-      }
-      setLoading(false)
-      return
-    }
-
-    fetch('https://overpass-api.de/api/interpreter', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: `data=${encodeURIComponent(OVERPASS_QUERY)}`,
-    })
-      .then(r => r.json())
-      .then(data => {
-        const gj = osmtogeojson(data)
-        localStorage.setItem(CACHE_KEY, JSON.stringify(gj))
-        setGeojson(gj)
-        setLoading(false)
-      })
-      .catch(() => {
-        setError(true)
-        setLoading(false)
-      })
-  }, [])
+export default function OmskMap({ districts, onDistrictClick, showTiles = true }) {
 
   const styleFeature = (feature) => {
     const district = matchDistrict(feature.properties?.name, districts)
@@ -130,31 +88,19 @@ export default function OmskMap({ districts, onDistrictClick }) {
       zoomControl={false}
     >
       <MapConstraints />
-      <TileLayer
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-        attribution='&copy; CARTO'
-      />
-
-      {geojson && (
-        <GeoJSON
-          key={geojson.features?.length}
-          data={geojson}
-          style={styleFeature}
-          onEachFeature={onEachFeature}
-          pointToLayer={() => null}
+      {showTiles && (
+        <TileLayer
+          url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; CARTO'
         />
       )}
 
-
-      {loading && (
-        <div style={{
-          position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
-          zIndex: 1000, background: '#ffffff', color: '#6b7280',
-          padding: '4px 12px', borderRadius: 6, fontSize: 12, border: '1px solid #e2e8f0',
-        }}>
-          Загрузка границ…
-        </div>
-      )}
+      <GeoJSON
+        key="static"
+        data={geojsonData}
+        style={styleFeature}
+        onEachFeature={onEachFeature}
+      />
     </MapContainer>
   )
 }

@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, Home, Route, Leaf, Bus, Lightbulb, TreeDeciduous, BotMessageSquare } from 'lucide-react'
+import { ArrowLeft, Download, Home, Route, Leaf, Bus, Lightbulb, TreeDeciduous, BotMessageSquare, FileSearch } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import ThemeToggle from '../components/ThemeToggle'
 
@@ -49,6 +49,14 @@ export default function DrilldownScreen({ district, onBack, dark, onToggleTheme 
           Скор {district.score}
         </span>
         <div className="ml-auto flex items-center gap-2">
+          <button
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+            style={{ background: '#dc2626', color: '#fff', border: '1px solid #b91c1c', opacity: 0.9 }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '0.9'}
+          >
+            <FileSearch className="w-3.5 h-3.5" /> Полный отчёт
+          </button>
           <button onClick={handleDownload}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all"
             style={{ border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-2)' }}>
@@ -57,16 +65,6 @@ export default function DrilldownScreen({ district, onBack, dark, onToggleTheme 
           <ThemeToggle dark={dark} onToggle={onToggleTheme} />
         </div>
       </header>
-
-      {/* Summary */}
-      <div className="mx-4 lg:mx-5 mt-4 p-4 rounded-2xl flex gap-3 anim-up"
-        style={{ background: dark ? 'rgba(234,88,12,0.1)' : '#fff7ed', border: '1px solid rgba(234,88,12,0.3)' }}>
-        <BotMessageSquare className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-xs font-bold text-orange-500 uppercase tracking-wider mb-1">Аналитическая сводка</p>
-          <p className="text-sm leading-relaxed" style={{ color: dark ? '#fed7aa' : '#9a3412' }}>{district.summary}</p>
-        </div>
-      </div>
 
       {/* Content */}
       <div className="flex-1 p-4 lg:p-5 grid grid-cols-1 lg:grid-cols-2 gap-4 anim-up">
@@ -140,6 +138,16 @@ export default function DrilldownScreen({ district, onBack, dark, onToggleTheme 
               </div>
             ))}
           </div>
+        </div>
+      </div>
+
+      {/* Summary — bottom */}
+      <div className="mx-4 lg:mx-5 mb-5 p-5 rounded-2xl flex gap-4 anim-up"
+        style={{ background: dark ? 'rgba(234,88,12,0.12)' : '#fff7ed', border: '2px solid rgba(234,88,12,0.4)' }}>
+        <BotMessageSquare className="w-6 h-6 text-orange-500 flex-shrink-0 mt-0.5" />
+        <div>
+          <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-2">Аналитическая сводка</p>
+          <p className="text-base leading-relaxed font-medium" style={{ color: dark ? '#fed7aa' : '#9a3412' }}>{district.summary}</p>
         </div>
       </div>
     </div>
